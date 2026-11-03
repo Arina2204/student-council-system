@@ -19,9 +19,10 @@ Student Council System — дипломный проект, направленн
 ## Технологии
 
 - Python
+- FastAPI
 - HTML
 - CSS
-- SQL / PosgreSQL
+- PosgreSQL
 
 ## Структура проекта
 
