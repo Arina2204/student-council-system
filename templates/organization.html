@@ -1,0 +1,2377 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ organization.name }}</title>
+
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+    }
+
+    .sidebar {
+        width: 270px;
+        background: #dcdcdc;
+        padding: 25px;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        overflow-y: auto;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .content {
+        margin-left: 300px;
+        padding: 50px;
+    }
+
+    .sidebar h3 {
+        margin-top: 0;
+        font-size: 20px;
+    }
+
+    /* Сворачивающееся меню слева */
+    .menu-section {
+        margin-bottom: 6px;
+    }
+
+    .root-title {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 16px 0 8px 0;
+        padding: 0;
+        font-size: 18px;
+        font-weight: bold;
+        text-decoration: none;
+        color: #000;
+        background: none;
+        border: none;
+        cursor: pointer;
+        text-align: left;
+        font-family: Arial, sans-serif;
+        list-style: none;
+        user-select: none;
+    }
+
+    .root-title:hover {
+        color: #333;
+    }
+
+    .section-arrow {
+        font-size: 13px;
+        margin-left: 8px;
+        transition: transform 0.2s ease;
+    }
+
+    .root-title {
+    list-style: none;
+}
+
+.root-title::-webkit-details-marker {
+    display: none;
+}
+
+.children-list {
+    display: none;
+}
+
+.menu-section[open] .children-list {
+    display: block;
+}
+
+.menu-section[open] .section-arrow {
+    transform: rotate(180deg);
+}
+
+    .child-link,
+    .child-link:visited,
+    .child-link:hover,
+    .child-link:active {
+        display: block;
+        margin: 6px 0 6px 20px;
+        font-size: 16px;
+        text-decoration: none;
+        color: #000;
+    }
+
+    .child-link:hover {
+        font-weight: bold;
+    }
+
+    .child-link.active {
+        font-weight: bold;
+    }
+
+    /* Карточка объединения */
+    .org-card {
+        background: #f5f5f5;
+        padding: 30px;
+        border-radius: 10px;
+        max-width: 700px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .org-card h1 {
+        margin-top: 0;
+        font-size: 32px;
+    }
+
+    .info-block {
+        margin-top: 10px;
+        font-size: 16px;
+    }
+
+    /* Редактирование руководителя */
+    .org-editable {
+        cursor: pointer;
+        padding: 2px 5px;
+        border-radius: 5px;
+    }
+
+    .org-editable:hover {
+        background: #e8e8e8;
+    }
+
+    .org-edit-input {
+        width: 360px;
+        max-width: 100%;
+        box-sizing: border-box;
+        border: 1px solid #777;
+        border-radius: 5px;
+        padding: 5px 7px;
+        font-size: 16px;
+        font-family: Arial, sans-serif;
+    }
+
+    /* Таблицы */
+    table {
+        border-collapse: collapse;
+        margin-top: 30px;
+        width: 100%;
+        max-width: 700px;
+    }
+
+    th, td {
+        border: 1px solid #aaa;
+        padding: 8px 12px;
+        text-align: left;
+    }
+
+    th {
+        background: #eeeeee;
+    }
+
+    .month-block {
+        width: 100%;
+        max-width: 1000px;
+        position: relative;
+    }
+
+    .activity-table {
+        width: 100%;
+        max-width: 1000px;
+        table-layout: fixed;
+    }
+
+    .activity-table th:nth-child(1),
+    .activity-table td:nth-child(1) {
+        width: 25%;
+    }
+
+    .activity-table th:nth-child(2),
+    .activity-table td:nth-child(2) {
+        width: 13%;
+    }
+
+    .activity-table th:nth-child(3),
+    .activity-table td:nth-child(3) {
+        width: 13%;
+    }
+
+    .activity-table th:nth-child(4),
+    .activity-table td:nth-child(4) {
+        width: 38%;
+    }
+
+    .activity-table th:nth-child(5),
+    .activity-table td:nth-child(5) {
+        width: 18%;
+    }
+
+    .activity-table th,
+    .activity-table td {
+        vertical-align: top;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+    .activity-table th.comment-col {
+        white-space: nowrap;
+    }
+
+    /* Добавление и редактирование строк */
+    .table-add-wrapper {
+        width: 100%;
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 10px;
+    }
+
+    .add-button {
+        width: 38px;
+        height: 38px;
+        border: none;
+        border-radius: 50%;
+        background: #333;
+        color: white;
+        font-size: 28px;
+        line-height: 38px;
+        cursor: pointer;
+    }
+
+    .add-button:hover {
+        background: #000;
+    }
+
+    .editable-cell {
+        cursor: pointer;
+    }
+
+    .editable-cell:hover {
+        background: #f7f7f7;
+    }
+
+    .edit-input {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #777;
+    padding: 5px;
+    font-size: 15px;
+    font-family: Arial, sans-serif;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+    .saving {
+        opacity: 0.6;
+    }
+
+    .floating-delete-button {
+        position: absolute;
+        border: none;
+        background: none;
+        color: #9b0000;
+        cursor: pointer;
+        font-size: 15px;
+        text-decoration: underline;
+        display: none;
+    }
+
+    .floating-delete-button:hover {
+        color: #d00000;
+    }
+
+    /* Поиск */
+    .search-panel {
+        margin-top: 25px;
+        margin-bottom: 20px;
+        max-width: 1000px;
+    }
+
+    .search-input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 12px 15px;
+        font-size: 16px;
+        font-family: Arial, sans-serif;
+        border: 1px solid #aaa;
+        border-radius: 8px;
+        outline: none;
+    }
+
+    .search-input:focus {
+        border-color: #333;
+    }
+
+    /* Другие объединения */
+    .other-orgs-block {
+        margin-top: 60px;
+        max-width: 1000px;
+    }
+
+    .other-orgs-block h2 {
+        font-size: 28px;
+        margin-bottom: 25px;
+    }
+
+    .other-org-title {
+        margin-top: 30px;
+        font-size: 22px;
+    }
+
+    .other-org-table {
+        width: 100%;
+        max-width: 700px;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+    .other-org-table th,
+    .other-org-table td {
+        border: 1px solid #aaa;
+        padding: 8px 12px;
+        text-align: left;
+    }
+
+    .other-org-table th {
+        background: #eeeeee;
+    }
+
+    .other-members-block {
+        margin-top: 60px;
+        max-width: 1000px;
+    }
+
+    .other-members-block h2 {
+        font-size: 28px;
+        margin-bottom: 10px;
+    }
+
+    .other-members-hint {
+        font-size: 16px;
+        color: #555;
+        margin-bottom: 15px;
+    }
+
+    .other-members-search {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 12px 15px;
+        font-size: 16px;
+        font-family: Arial, sans-serif;
+        border: 1px solid #aaa;
+        border-radius: 8px;
+        outline: none;
+        margin-bottom: 20px;
+    }
+
+    .other-members-search:focus {
+        border-color: #333;
+    }
+
+    .other-members-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .other-members-table th,
+    .other-members-table td {
+        border: 1px solid #aaa;
+        padding: 8px 12px;
+        text-align: left;
+    }
+
+    .other-members-table th {
+        background: #eeeeee;
+    }
+
+    /* Панель входа справа сверху */
+    .auth-panel {
+        position: fixed;
+        top: 20px;
+        right: 28px;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 10px;
+    }
+
+    .login-button,
+    .login-button:visited,
+    .login-button:hover,
+    .login-button:active {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 16px;
+        background: #ffffff;
+        color: #222;
+        border: 1px solid #d6d6d6;
+        border-radius: 999px;
+        font-size: 15px;
+        font-weight: 600;
+        text-decoration: none;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14);
+        transition: 0.2s ease;
+    }
+
+    .login-button:hover {
+        background: #f4f4f4;
+        transform: translateY(-1px);
+    }
+
+    .login-circle {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #222;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 19px;
+        line-height: 1;
+    }
+
+    .user-panel {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 10px 8px 8px;
+        background: #ffffff;
+        border: 1px solid #d6d6d6;
+        border-radius: 999px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14);
+    }
+
+    .user-avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: #222;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 17px;
+        font-weight: bold;
+    }
+
+    .user-info {
+        line-height: 1.15;
+    }
+
+    .user-name {
+        font-size: 15px;
+        font-weight: 700;
+        color: #222;
+    }
+
+    .user-role {
+        margin-top: 3px;
+        font-size: 12px;
+        color: #6b6b6b;
+    }
+
+    .logout-button,
+    .logout-button:visited,
+    .logout-button:hover,
+    .logout-button:active {
+        padding: 8px 12px;
+        background: #f1f1f1;
+        color: #333;
+        border-radius: 999px;
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: 0.2s ease;
+    }
+
+    .logout-button:hover {
+        background: #222;
+        color: #ffffff;
+    }
+
+    /* Кнопка печати */
+    .print-panel {
+        margin-top: 20px;
+        margin-bottom: 20px;
+        max-width: 1000px;
+    }
+
+    .print-button {
+        padding: 10px 18px;
+        background: #222;
+        color: white;
+        border: none;
+        border-radius: 999px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .print-button:hover {
+        background: #000;
+    }
+
+    .auth-print-button {
+        min-width: 220px;
+    }
+
+    /* Ссылка назад */
+    .back-link,
+    .back-link:visited,
+    .back-link:hover,
+    .back-link:active {
+        display: inline-block;
+        margin-top: 30px;
+        font-size: 15px;
+        text-decoration: none;
+        color: #555;
+    }
+
+    .back-link:hover {
+        color: #000;
+    }
+
+    /* Цветовая маркировка строк */
+    .row-color-column,
+    .row-color-cell {
+        width: 7%;
+        text-align: center;
+    }
+
+    .row-color-select {
+        width: 34px;
+        height: 28px;
+        border: 1px solid #999;
+        border-radius: 6px;
+        cursor: pointer;
+        background: #ffffff;
+    }
+
+    .activity-table tbody tr.row-green td {
+        background: #dff3df;
+    }
+
+    .activity-table tbody tr.row-yellow td {
+        background: #fff4c7;
+    }
+
+    .activity-table tbody tr.row-red td {
+        background: #f6d6d6;
+    }
+
+    .activity-table tbody tr.row-green:hover td,
+    .activity-table tbody tr.row-yellow:hover td,
+    .activity-table tbody tr.row-red:hover td {
+        filter: brightness(0.98);
+    }
+
+    .activity-table-edit th:nth-child(1),
+    .activity-table-edit td:nth-child(1) {
+        width: 7%;
+    }
+
+    .activity-table-edit th:nth-child(2),
+    .activity-table-edit td:nth-child(2) {
+        width: 23%;
+    }
+
+    .activity-table-edit th:nth-child(3),
+    .activity-table-edit td:nth-child(3) {
+        width: 12%;
+    }
+
+    .activity-table-edit th:nth-child(4),
+    .activity-table-edit td:nth-child(4) {
+        width: 12%;
+    }
+
+    .activity-table-edit th:nth-child(5),
+    .activity-table-edit td:nth-child(5) {
+        width: 28%;
+    }
+
+    .activity-table-edit th:nth-child(6),
+    .activity-table-edit td:nth-child(6) {
+        width: 18%;
+    }
+
+/* Цветовая маркировка строк деятельности */
+    .activity-table tbody tr.row-green td {
+        background: #dff3df;
+    }
+
+    .activity-table tbody tr.row-yellow td {
+        background: #fff4c7;
+    }
+
+    .activity-table tbody tr.row-red td {
+        background: #f6d6d6;
+    }
+
+    .row-color-column,
+    .row-color-cell {
+        width: 7%;
+        text-align: center;
+    }
+
+    .row-color-select {
+        width: 45px;
+        height: 32px;
+        border: 1px solid #999;
+        border-radius: 7px;
+        background: #ffffff;
+        cursor: pointer;
+    }
+
+        /* Кнопка добавления раздела / объединения в левом меню */
+        .sidebar-add-wrapper {
+            margin-top: auto;
+            padding-top: 24px;
+        }
+
+        .sidebar-add-btn {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #222;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #000000;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+        }
+        .sidebar-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .child-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-left: 20px;
+        }
+
+        .child-row .child-link {
+            margin-left: 0;
+            flex: 1;
+        }
+
+        .sidebar-delete-btn {
+            width: 24px;
+            height: 24px;
+            border: none;
+            border-radius: 50%;
+            background: transparent;
+            color: #8b0000;
+            font-size: 20px;
+            line-height: 22px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-delete-btn:hover {
+            background: #f3caca;
+            color: #d00000;
+        }
+
+        .child-delete-btn {
+            margin-left: 8px;
+            font-size: 18px;
+        }
+        .sidebar-add-btn:hover {
+            background: #f0f0f0;
+        }
+
+        /* Модальное окно добавления раздела / объединения */
+        .org-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 99999;
+            background: rgba(0, 0, 0, 0.35);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .org-modal-window {
+            width: 460px;
+            max-width: 92%;
+            max-height: 90vh;
+            overflow-y: auto;
+            background: #ffffff;
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.25);
+            box-sizing: border-box;
+        }
+
+        .org-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .org-modal-header h3 {
+            margin: 0;
+            font-size: 22px;
+        }
+
+        .org-modal-close {
+            border: none;
+            background: transparent;
+            font-size: 28px;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .org-modal-label {
+            display: block;
+            margin-top: 12px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .org-modal-input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 9px 10px;
+            border: 1px solid #aaa;
+            border-radius: 7px;
+            font-size: 15px;
+            font-family: Arial, sans-serif;
+        }
+
+        .org-radio-row {
+            display: flex;
+            gap: 18px;
+            margin: 8px 0 12px;
+            flex-wrap: wrap;
+        }
+
+        .org-modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .org-modal-cancel-btn,
+        .org-modal-save-btn {
+            padding: 9px 16px;
+            border-radius: 7px;
+            border: 1px solid #222;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .org-modal-cancel-btn {
+            background: #ffffff;
+        }
+
+        .org-modal-save-btn {
+            background: #222222;
+            color: #ffffff;
+        }
+
+        .org-modal-save-btn:hover {
+            background: #000000;
+        }
+
+    /* Вид страницы при печати */
+    @media print {
+        .sidebar,
+        .auth-panel,
+        .search-panel,
+        .print-panel,
+        .table-add-wrapper,
+        .floating-delete-button,
+        .other-members-block,
+        .back-link {
+            display: none !important;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: white !important;
+        }
+
+        .content {
+            margin-left: 0 !important;
+            padding: 15px !important;
+            max-width: 100% !important;
+        }
+
+        .org-card {
+            box-shadow: none !important;
+            border: 1px solid #aaa !important;
+            max-width: 100% !important;
+            margin-bottom: 15px !important;
+            padding: 18px !important;
+            border-radius: 8px !important;
+        }
+
+        .org-card h1 {
+            font-size: 24px !important;
+            margin-bottom: 12px !important;
+        }
+
+        .info-block {
+            font-size: 14px !important;
+            margin-top: 6px !important;
+        }
+
+        .month-block {
+            max-width: 100% !important;
+            margin-top: 14px !important;
+            margin-bottom: 14px !important;
+            page-break-inside: auto !important;
+            break-inside: auto !important;
+        }
+
+        .month-block h3 {
+            margin-top: 12px !important;
+            margin-bottom: 6px !important;
+            font-size: 18px !important;
+            page-break-after: avoid !important;
+            break-after: avoid !important;
+        }
+
+        .activity-table {
+            width: 100% !important;
+            max-width: 100% !important;
+            table-layout: fixed !important;
+            margin-top: 6px !important;
+            border-collapse: collapse !important;
+            page-break-inside: auto !important;
+            break-inside: auto !important;
+            font-size: 9pt !important;
+        }
+
+        .activity-table tr {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
+        /* Скрываем столбцы "Цвет" и "Комментарий" при печати */
+        .row-color-column,
+        .row-color-cell,
+        .comment-col,
+        .comment-column,
+        .activity-table th:first-child,
+        .activity-table td:first-child,
+        .activity-table th:last-child,
+        .activity-table td:last-child {
+            display: none !important;
+        }
+
+        /* После скрытия "Цвет" и "Комментарий" остаются:
+           ФИО | Группа | Роль | Активность */
+
+        .activity-table th:nth-child(2),
+        .activity-table td:nth-child(2) {
+            width: 24% !important;
+        }
+
+        .activity-table th:nth-child(3),
+        .activity-table td:nth-child(3) {
+            width: 12% !important;
+        }
+
+        .activity-table th:nth-child(4),
+        .activity-table td:nth-child(4) {
+            width: 14% !important;
+        }
+
+        .activity-table th:nth-child(5),
+        .activity-table td:nth-child(5) {
+            width: 50% !important;
+        }
+
+        .activity-table th,
+        .activity-table td {
+            border: 1px solid #555 !important;
+            padding: 5px 7px !important;
+            font-size: 11px !important;
+            vertical-align: top !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            white-space: normal !important;
+        }
+
+        .activity-table th {
+            background: #eeeeee !important;
+            font-weight: bold !important;
+        }
+
+        table {
+            border-collapse: collapse !important;
+        }
+    }
+</style>
+</head>
+<body>
+
+<div class="auth-panel">
+    {% if current_user %}
+        <div class="user-panel">
+            <div class="user-avatar">
+                {{ current_user.username[0]|upper }}
+            </div>
+
+            <div class="user-info">
+                <div class="user-name">{{ current_user.username }}</div>
+
+                <div class="user-role">
+                    {% if can_edit %}
+                        Режим редактора
+                    {% else %}
+                        Режим просмотра
+                    {% endif %}
+                </div>
+            </div>
+
+            <a class="logout-button" href="/logout">
+                Выйти
+            </a>
+        </div>
+
+        {% if can_edit %}
+            <button type="button" class="print-button auth-print-button" onclick="window.print()">
+                Отправить на печать
+            </button>
+        {% endif %}
+    {% else %}
+        <a class="login-button" href="/login">
+            <span class="login-circle">+</span>
+            <span>Войти</span>
+        </a>
+    {% endif %}
+</div>
+
+<div class="sidebar">
+    <h3>Объединения</h3>
+
+    {% for item in org_tree %}
+        {% set ns = namespace(is_open=false) %}
+
+        {% for child in item.children %}
+            {% if child.id == organization.id %}
+                {% set ns.is_open = true %}
+            {% endif %}
+        {% endfor %}
+
+        <details class="menu-section" {% if ns.is_open %}open{% endif %}>
+            <summary class="root-title">
+                <span>{{ item.root.name }}</span>
+
+                <span class="sidebar-actions">
+                    {% if can_edit %}
+                        <button type="button"
+                                class="sidebar-delete-btn"
+                                title="Удалить раздел"
+                                onclick="deleteOrganization(event, {{ item.root.id }}, '{{ item.root.name|e }}', true)">
+                            ×
+                        </button>
+                    {% endif %}
+
+                    <span class="section-arrow">▼</span>
+                </span>
+            </summary>
+
+            <div class="children-list">
+                {% for child in item.children %}
+                    <div class="child-row">
+                        <a class="child-link {% if child.id == organization.id %}active{% endif %}"
+                           href="/organization/{{ child.id }}">
+                            {{ child.name }}
+                        </a>
+
+                        {% if can_edit %}
+                            <button type="button"
+                                    class="sidebar-delete-btn child-delete-btn"
+                                    title="Удалить объединение"
+                                    onclick="deleteOrganization(event, {{ child.id }}, '{{ child.name|e }}', false)">
+                                ×
+                            </button>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        </details>
+    {% endfor %}
+
+    {% if can_edit %}
+        <div class="sidebar-add-wrapper">
+            <button type="button"
+                    class="sidebar-add-btn"
+                    onclick="document.getElementById('addOrganizationModal').style.display='flex'; toggleOrganizationFields();">
+                + Добавить раздел / объединение
+            </button>
+        </div>
+    {% endif %}
+</div>
+
+<div class="content">
+
+    <div class="org-card">
+    <h1>{{ organization.name }}</h1>
+
+    <div class="info-block">
+        <strong>Руководитель:</strong>
+
+        {% if can_edit %}
+            <span class="org-editable"
+                  data-org-id="{{ organization.id }}"
+                  data-field="leader_name"
+                  data-empty-text="Не указан">
+                {{ organization.leader_name or 'Не указан' }}
+            </span>
+        {% else %}
+            {{ organization.leader_name or 'Не указан' }}
+        {% endif %}
+    </div>
+
+    <div class="info-block">
+        <strong>Факультет:</strong>
+
+        {% if can_edit %}
+            <span class="org-editable"
+                  data-org-id="{{ organization.id }}"
+                  data-field="faculty"
+                  data-empty-text="Не указан">
+                {{ organization.faculty or 'Не указан' }}
+            </span>
+        {% else %}
+            {{ organization.faculty or 'Не указан' }}
+        {% endif %}
+    </div>
+
+    <div class="info-block">
+        <strong>Группа:</strong>
+
+        {% if can_edit %}
+            <span class="org-editable"
+                  data-org-id="{{ organization.id }}"
+                  data-field="study_group"
+                  data-empty-text="Не указана">
+                {{ organization.study_group or 'Не указана' }}
+            </span>
+        {% else %}
+            {{ organization.study_group or 'Не указана' }}
+        {% endif %}
+    </div>
+        <div class="info-block">
+            <strong>Связь с руководителем:</strong>
+
+            {% if can_edit %}
+                <span class="org-editable"
+                      data-org-id="{{ organization.id }}"
+                      data-field="contact_info"
+                      data-empty-text="Не указана">
+                    {{ organization.contact_info or 'Не указана' }}
+                </span>
+            {% else %}
+                {{ organization.contact_info or 'Не указана' }}
+            {% endif %}
+        </div>
+</div>
+
+    <div class="search-panel">
+        <input
+            type="text"
+            id="activitySearch"
+            class="search-input"
+            placeholder="Поиск по ФИО, группе, роли или активности..."
+            oninput="filterActivities()"
+        >
+    </div>
+    <datalist id="fioSuggestions"></datalist>
+    <datalist id="groupSuggestions"></datalist>
+    <datalist id="roleSuggestions"></datalist>
+  {% if months %}
+
+    {% for month in months %}
+
+        {% set month_number = month[5:7] %}
+
+{% set month_names = {
+    "01": "Январь",
+    "02": "Февраль",
+    "03": "Март",
+    "04": "Апрель",
+    "05": "Май",
+    "06": "Июнь",
+    "07": "Июль",
+    "08": "Август",
+    "09": "Сентябрь",
+    "10": "Октябрь",
+    "11": "Ноябрь",
+    "12": "Декабрь"
+} %}
+
+<div class="month-block">
+
+    <h3 style="margin-top:40px;">
+        {{ month_names[month_number] }}
+    </h3>
+
+    <table class="activity-table {% if can_edit %}activity-table-edit{% endif %}"
+           data-organization-id="{{ organization.id }}"
+           data-month="{{ month }}">
+        <thead>
+            <tr>
+                {% if can_edit %}
+                    <th class="row-color-column">Цвет</th>
+                {% endif %}
+
+                <th>ФИО</th>
+                <th>Группа</th>
+                <th>Роль</th>
+                <th class="activity-column">Активность</th>
+
+                {% if can_edit %}
+                    <th class="comment-col">Комментарий</th>
+                {% endif %}
+            </tr>
+        </thead>
+
+        <tbody>
+            {% set ns = namespace(found=false) %}
+
+            {% for student, membership, activity in activities %}
+                {% if activity and (activity.month|string)[:7] == month %}
+                    {% set ns.found = true %}
+
+                    <tr data-activity-id="{{ activity.id }}"
+                        data-row-color="{{ activity.row_color or '' }}"
+                        class="{% if activity.row_color %}row-{{ activity.row_color }}{% endif %}">
+
+                        {% if can_edit %}
+                            <td class="row-color-cell">
+                                <select class="row-color-select" onchange="changeRowColor(this)">
+                                    <option value="" {% if not activity.row_color %}selected{% endif %}>—</option>
+                                    <option value="green" {% if activity.row_color == 'green' %}selected{% endif %}>🟢</option>
+                                    <option value="yellow" {% if activity.row_color == 'yellow' %}selected{% endif %}>🟡</option>
+                                    <option value="red" {% if activity.row_color == 'red' %}selected{% endif %}>🔴</option>
+                                </select>
+                            </td>
+                        {% endif %}
+
+                        <td class="{% if can_edit %}editable-cell{% endif %}" data-field="fio">
+                            {{ student.last_name }} {{ student.first_name }}{% if student.middle_name %} {{ student.middle_name }}{% endif %}
+                        </td>
+
+                        <td class="{% if can_edit %}editable-cell{% endif %}" data-field="group_name">
+                            {{ student.group_name }}
+                        </td>
+
+                        <td class="{% if can_edit %}editable-cell{% endif %}" data-field="role">
+                            {{ membership.role }}
+                        </td>
+
+                        <td class="{% if can_edit %}editable-cell{% endif %} activity-column" data-field="activity">
+                            {{ activity.activity }}
+                        </td>
+
+                        {% if can_edit %}
+                            <td class="editable-cell" data-field="comment">
+                                {{ activity.comment or '' }}
+                            </td>
+                        {% endif %}
+                    </tr>
+                {% endif %}
+            {% endfor %}
+
+            {% if not ns.found %}
+                <tr class="empty-row">
+                    <td colspan="{% if can_edit %}6{% else %}4{% endif %}" style="text-align:center; font-style:italic;">
+                        Нет деятельности за месяц
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    {% if can_edit %}
+    <div class="table-add-wrapper">
+        <button type="button"
+                class="add-button"
+                onclick="addRow(this)">
+            +
+        </button>
+    </div>
+{% endif %}
+
+</div>
+
+    {% endfor %}
+
+{% else %}
+    <p style="margin-top:30px;">Нет деятельности</p>
+{% endif %}
+
+<script>
+const CAN_EDIT = {{ "true" if can_edit else "false" }};
+const TABLE_COLSPAN = CAN_EDIT ? 6 : 4;
+
+
+/* =========================
+   Подсказки для ФИО, группы и роли
+========================= */
+
+function addSuggestion(datalistId, value) {
+    const datalist = document.getElementById(datalistId);
+
+    if (!datalist) {
+        return;
+    }
+
+    const cleanValue = (value || "").trim();
+
+    if (cleanValue === "") {
+        return;
+    }
+
+    const existingOptions = Array.from(datalist.options).map(option => option.value);
+
+    if (existingOptions.includes(cleanValue)) {
+        return;
+    }
+
+    const option = document.createElement("option");
+    option.value = cleanValue;
+    datalist.appendChild(option);
+}
+
+
+function clearSuggestions() {
+    const lists = ["fioSuggestions", "groupSuggestions", "roleSuggestions"];
+
+    lists.forEach(id => {
+        const datalist = document.getElementById(id);
+
+        if (datalist) {
+            datalist.innerHTML = "";
+        }
+    });
+}
+
+
+function updateAutocompleteSuggestions() {
+    clearSuggestions();
+
+    document.querySelectorAll('[data-field="fio"]').forEach(cell => {
+        addSuggestion("fioSuggestions", cell.textContent);
+    });
+
+    document.querySelectorAll('[data-field="group_name"]').forEach(cell => {
+        addSuggestion("groupSuggestions", cell.textContent);
+    });
+
+    document.querySelectorAll('[data-field="role"]').forEach(cell => {
+        addSuggestion("roleSuggestions", cell.textContent);
+    });
+
+    document.querySelectorAll(".other-member-row").forEach(row => {
+        const cells = row.querySelectorAll("td");
+
+        if (cells.length >= 4) {
+            addSuggestion("fioSuggestions", cells[1].textContent);
+            addSuggestion("groupSuggestions", cells[2].textContent);
+            addSuggestion("roleSuggestions", cells[3].textContent);
+        }
+    });
+
+    addSuggestion("roleSuggestions", "Председатель");
+    addSuggestion("roleSuggestions", "Участник");
+    addSuggestion("roleSuggestions", "Волонтёр");
+    addSuggestion("roleSuggestions", "Организатор");
+    addSuggestion("roleSuggestions", "Ответственный");
+}
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    updateAutocompleteSuggestions();
+});
+
+
+/* =========================
+   Добавление новой строки деятельности
+========================= */
+
+function addRow(button) {
+    if (!CAN_EDIT) {
+        return;
+    }
+
+    updateAutocompleteSuggestions();
+
+    const monthBlock = button.closest(".month-block");
+
+    if (!monthBlock) {
+        alert("Не найден блок месяца");
+        return;
+    }
+
+    const table = monthBlock.querySelector(".activity-table");
+
+    if (!table) {
+        alert("Не найдена таблица месяца");
+        return;
+    }
+
+    const tbody = table.querySelector("tbody");
+
+    if (!tbody) {
+        alert("Не найдено тело таблицы");
+        return;
+    }
+
+    const emptyRow = tbody.querySelector(".empty-row");
+
+    if (emptyRow) {
+        emptyRow.remove();
+    }
+
+    const row = document.createElement("tr");
+    row.classList.add("new-row");
+
+    row.innerHTML = `
+        <td class="row-color-cell">
+            <select class="row-color-select" onchange="changeRowColor(this)">
+                <option value="">—</option>
+                <option value="green">🟢</option>
+                <option value="yellow">🟡</option>
+                <option value="red">🔴</option>
+            </select>
+        </td>
+        <td data-field="fio">
+            <input class="edit-input"
+                   list="fioSuggestions"
+                   placeholder="Фамилия Имя Отчество">
+        </td>
+        <td data-field="group_name">
+            <input class="edit-input"
+                   list="groupSuggestions"
+                   placeholder="Группа">
+        </td>
+        <td data-field="role">
+            <input class="edit-input"
+                   list="roleSuggestions"
+                   placeholder="Роль">
+        </td>
+        <td data-field="activity" class="activity-column">
+            <input class="edit-input" placeholder="Активность">
+        </td>
+        <td data-field="comment">
+            <input class="edit-input" placeholder="Комментарий">
+        </td>
+    `;
+
+    tbody.appendChild(row);
+
+    const inputs = row.querySelectorAll("input");
+
+    inputs.forEach(input => {
+        input.addEventListener("input", function () {
+            saveNewRowIfReady(row);
+        });
+
+        input.addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                saveNewRowIfReady(row);
+            }
+        });
+    });
+
+    row.addEventListener("focusout", function () {
+        setTimeout(function () {
+            if (!row.contains(document.activeElement)) {
+                saveNewRowIfReady(row);
+            }
+        }, 100);
+    });
+
+    inputs[0].focus();
+    showDeleteButton(row);
+}
+
+
+function getValueFromCell(row, fieldName) {
+    const cell = row.querySelector(`[data-field="${fieldName}"]`);
+
+    if (!cell) {
+        return "";
+    }
+
+    const input = cell.querySelector("input");
+
+    if (input) {
+        return input.value.trim();
+    }
+
+    return cell.textContent.trim();
+}
+
+
+function getRowColor(row) {
+    const select = row.querySelector(".row-color-select");
+
+    if (select) {
+        return select.value;
+    }
+
+    return row.dataset.rowColor || "";
+}
+
+
+function applyRowColor(row, color) {
+    row.classList.remove("row-green", "row-yellow", "row-red");
+
+    if (color === "green" || color === "yellow" || color === "red") {
+        row.classList.add("row-" + color);
+        row.dataset.rowColor = color;
+    } else {
+        row.dataset.rowColor = "";
+    }
+
+    const select = row.querySelector(".row-color-select");
+
+    if (select) {
+        select.value = color || "";
+    }
+}
+
+async function changeRowColor(select) {
+    if (!CAN_EDIT) {
+        return;
+    }
+
+    const row = select.closest("tr");
+
+    if (!row) {
+        return;
+    }
+
+    const color = select.value;
+    applyRowColor(row, color);
+
+    if (!row.dataset.activityId) {
+        return;
+    }
+
+    await saveExistingRow(row, null, "");
+}
+
+
+function getRowData(row) {
+    const table = row.closest(".activity-table");
+
+    return {
+        organization_id: Number(table.dataset.organizationId),
+        month: table.dataset.month + "-15",
+        fio: getValueFromCell(row, "fio"),
+        group_name: getValueFromCell(row, "group_name"),
+        role: getValueFromCell(row, "role"),
+        activity: getValueFromCell(row, "activity"),
+        comment: getValueFromCell(row, "comment"),
+        row_color: getRowColor(row)
+    };
+}
+
+
+function isRowReady(data) {
+    return (
+        data.fio !== "" &&
+        data.group_name !== "" &&
+        data.role !== "" &&
+        data.activity !== ""
+    );
+}
+
+
+async function saveNewRowIfReady(row) {
+    if (row.dataset.activityId) {
+        return;
+    }
+
+    if (row.dataset.savingNew === "true") {
+        return;
+    }
+
+    const data = getRowData(row);
+
+    if (!isRowReady(data)) {
+        return;
+    }
+
+    row.dataset.savingNew = "true";
+    row.classList.add("saving");
+
+    const response = await fetch("/activities", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+    });
+
+    row.classList.remove("saving");
+    row.dataset.savingNew = "false";
+
+    if (!response.ok) {
+        const error = await response.json();
+        alert(error.detail || "Ошибка при добавлении записи");
+        return;
+    }
+
+    const result = await response.json();
+
+    row.dataset.activityId = result.id;
+    row.classList.remove("new-row");
+
+    makeRowText(row);
+    updateAutocompleteSuggestions();
+    hideDeleteButton();
+}
+
+
+function makeRowText(row) {
+    const fields = ["fio", "group_name", "role", "activity", "comment"];
+
+    fields.forEach(field => {
+        const cell = row.querySelector(`[data-field="${field}"]`);
+
+        if (!cell) {
+            return;
+        }
+
+        const value = getValueFromCell(row, field);
+
+        cell.classList.add("editable-cell");
+
+        if (field === "activity") {
+            cell.classList.add("activity-column");
+        }
+
+        cell.textContent = value;
+    });
+}
+
+
+/* =========================
+   Редактирование строк деятельности
+========================= */
+
+document.addEventListener("click", function (event) {
+    if (!CAN_EDIT) {
+        return;
+    }
+
+    if (event.target.classList.contains("floating-delete-button")) {
+        return;
+    }
+
+    if (event.target.tagName === "INPUT" || event.target.tagName === "SELECT") {
+        return;
+    }
+
+    const cell = event.target.closest(".editable-cell");
+
+    if (!cell) {
+        return;
+    }
+
+    makeCellEditable(cell);
+});
+
+
+function makeCellEditable(cell) {
+    if (!CAN_EDIT) {
+        return;
+    }
+
+    if (cell.querySelector("input")) {
+        return;
+    }
+
+    const oldValue = cell.textContent.trim();
+
+    cell.innerHTML = "";
+
+    const input = document.createElement("input");
+    input.className = "edit-input";
+    input.value = oldValue;
+
+    const fieldName = cell.dataset.field;
+
+    if (fieldName === "fio") {
+        input.setAttribute("list", "fioSuggestions");
+    }
+
+    if (fieldName === "group_name") {
+        input.setAttribute("list", "groupSuggestions");
+    }
+
+    if (fieldName === "role") {
+        input.setAttribute("list", "roleSuggestions");
+    }
+
+    cell.appendChild(input);
+    input.focus();
+
+    showDeleteButton(cell.closest("tr"));
+
+    input.addEventListener("blur", function () {
+        finishEdit(cell, oldValue);
+    });
+
+    input.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+            input.blur();
+        }
+
+        if (event.key === "Escape") {
+            cell.textContent = oldValue;
+            hideDeleteButton();
+        }
+    });
+}
+
+
+async function finishEdit(cell, oldValue) {
+    const input = cell.querySelector("input");
+
+    if (!input) {
+        return;
+    }
+
+    const newValue = input.value.trim();
+    cell.textContent = newValue;
+
+    if (newValue === oldValue) {
+        hideDeleteButton();
+        return;
+    }
+
+    const row = cell.closest("tr");
+
+    await saveExistingRow(row, cell, oldValue);
+
+    hideDeleteButton();
+}
+
+
+async function saveExistingRow(row, changedCell, oldValue) {
+    const activityId = row.dataset.activityId;
+    const data = getRowData(row);
+
+    if (!activityId) {
+        return;
+    }
+
+    if (!isRowReady(data)) {
+        alert("ФИО, группа, роль и активность не должны быть пустыми");
+
+        if (changedCell) {
+            changedCell.textContent = oldValue;
+        }
+
+        return;
+    }
+
+    row.classList.add("saving");
+
+    const response = await fetch(`/activities/${activityId}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+    });
+
+    row.classList.remove("saving");
+
+    if (!response.ok) {
+        const error = await response.json();
+        alert(error.detail || "Ошибка при сохранении записи");
+
+        if (changedCell) {
+            changedCell.textContent = oldValue;
+        }
+
+        return;
+    }
+
+    updateAutocompleteSuggestions();
+}
+
+
+/* =========================
+   Удаление строки
+========================= */
+
+function showDeleteButton(row) {
+    if (!CAN_EDIT) {
+        return;
+    }
+
+    if (!row) {
+        return;
+    }
+
+    let button = document.querySelector(".floating-delete-button");
+
+    if (!button) {
+        button = document.createElement("button");
+        button.type = "button";
+        button.className = "floating-delete-button";
+        button.textContent = "Удалить";
+        document.body.appendChild(button);
+    }
+
+    const rowRect = row.getBoundingClientRect();
+
+    button.style.display = "block";
+    button.style.left = (rowRect.right + window.scrollX + 12) + "px";
+    button.style.top = (rowRect.top + window.scrollY + rowRect.height / 2 - 10) + "px";
+
+    button.onmousedown = function (event) {
+        event.preventDefault();
+        deleteRowByElement(row);
+    };
+}
+
+
+function hideDeleteButton() {
+    const button = document.querySelector(".floating-delete-button");
+
+    if (button) {
+        button.style.display = "none";
+    }
+}
+
+
+async function deleteRowByElement(row) {
+    if (!CAN_EDIT) {
+        return;
+    }
+
+    const activityId = row.dataset.activityId;
+
+    if (!confirm("Удалить эту запись?")) {
+        return;
+    }
+
+    if (!activityId) {
+        removeRowAndShowEmptyIfNeeded(row);
+        hideDeleteButton();
+        updateAutocompleteSuggestions();
+        return;
+    }
+
+    const response = await fetch(`/activities/${activityId}`, {
+        method: "DELETE"
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        alert(error.detail || "Ошибка при удалении записи");
+        return;
+    }
+
+    removeRowAndShowEmptyIfNeeded(row);
+    hideDeleteButton();
+    updateAutocompleteSuggestions();
+}
+
+
+function removeRowAndShowEmptyIfNeeded(row) {
+    const tbody = row.closest("tbody");
+
+    row.remove();
+
+    const rowsLeft = tbody.querySelectorAll("tr:not(.empty-row):not(.search-empty-row)");
+
+    if (rowsLeft.length === 0) {
+        const emptyRow = document.createElement("tr");
+        emptyRow.className = "empty-row";
+
+        emptyRow.innerHTML = `
+            <td colspan="${TABLE_COLSPAN}" style="text-align:center; font-style:italic;">
+                Нет деятельности за месяц
+            </td>
+        `;
+
+        tbody.appendChild(emptyRow);
+    }
+}
+
+
+/* =========================
+   Поиск по деятельности
+========================= */
+
+function filterActivities() {
+    const searchInput = document.getElementById("activitySearch");
+
+    if (!searchInput) {
+        return;
+    }
+
+    const query = searchInput.value.trim().toLowerCase();
+    const tables = document.querySelectorAll(".activity-table");
+
+    tables.forEach(table => {
+        const tbody = table.querySelector("tbody");
+        const rows = tbody.querySelectorAll("tr:not(.empty-row):not(.search-empty-row)");
+
+        let found = false;
+
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+
+            if (query === "" || text.includes(query)) {
+                row.style.display = "";
+                found = true;
+            } else {
+                row.style.display = "none";
+            }
+        });
+
+        let searchEmptyRow = tbody.querySelector(".search-empty-row");
+
+        if (!searchEmptyRow) {
+            searchEmptyRow = document.createElement("tr");
+            searchEmptyRow.className = "search-empty-row";
+            searchEmptyRow.innerHTML = `
+                <td colspan="${TABLE_COLSPAN}" style="text-align:center; font-style:italic;">
+                    Ничего не найдено
+                </td>
+            `;
+            tbody.appendChild(searchEmptyRow);
+        }
+
+        if (query !== "" && rows.length > 0 && !found) {
+            searchEmptyRow.style.display = "";
+        } else {
+            searchEmptyRow.style.display = "none";
+        }
+    });
+}
+
+
+/* =========================
+   Поиск участника в других объединениях
+========================= */
+
+function filterOtherMembers() {
+    const input = document.getElementById("otherMembersSearch");
+
+    if (!input) {
+        return;
+    }
+
+    const query = input.value.trim().toLowerCase();
+    const rows = document.querySelectorAll(".other-member-row");
+
+    const startRow = document.getElementById("otherMembersStartRow");
+    const emptyRow = document.getElementById("otherMembersEmptyRow");
+
+    let found = false;
+
+    rows.forEach(row => {
+        const text = (row.dataset.search || "").toLowerCase();
+
+        if (query !== "" && text.includes(query)) {
+            row.style.display = "";
+            found = true;
+        } else {
+            row.style.display = "none";
+        }
+    });
+
+    if (startRow) {
+        startRow.style.display = query === "" ? "" : "none";
+    }
+
+    if (emptyRow) {
+        emptyRow.style.display = query !== "" && !found ? "" : "none";
+    }
+}
+
+
+/* =========================
+   Редактирование карточки объединения
+   Руководитель / факультет / группа / контакты
+========================= */
+
+document.addEventListener("click", function (event) {
+    if (!CAN_EDIT) {
+        return;
+    }
+
+    if (event.target.tagName === "INPUT") {
+        return;
+    }
+
+    const editableOrgField = event.target.closest(".org-editable");
+
+    if (!editableOrgField) {
+        return;
+    }
+
+    makeOrganizationFieldEditable(editableOrgField);
+});
+
+
+function makeOrganizationFieldEditable(element) {
+    if (element.querySelector("input")) {
+        return;
+    }
+
+    const oldValue = element.textContent.trim();
+    const emptyText = element.dataset.emptyText || "Не указано";
+
+    element.innerHTML = "";
+
+    const input = document.createElement("input");
+    input.className = "org-edit-input";
+
+    if (oldValue === emptyText) {
+        input.value = "";
+    } else {
+        input.value = oldValue;
+    }
+
+    element.appendChild(input);
+    input.focus();
+
+    input.addEventListener("blur", function () {
+        finishOrganizationFieldEdit(element, oldValue);
+    });
+
+    input.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+            input.blur();
+        }
+
+        if (event.key === "Escape") {
+            element.textContent = oldValue;
+        }
+    });
+}
+
+
+async function finishOrganizationFieldEdit(element, oldValue) {
+    const input = element.querySelector("input");
+
+    if (!input) {
+        return;
+    }
+
+    const newValue = input.value.trim();
+    const orgId = element.dataset.orgId;
+    const fieldName = element.dataset.field;
+    const emptyText = element.dataset.emptyText || "Не указано";
+
+    if (newValue === oldValue) {
+        element.textContent = oldValue;
+        return;
+    }
+
+    const response = await fetch(`/organizations/${orgId}/field`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            field: fieldName,
+            value: newValue
+        })
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        alert(error.detail || "Ошибка при сохранении данных объединения");
+        element.textContent = oldValue;
+        return;
+    }
+
+    const result = await response.json();
+
+    if (result.value === "") {
+        element.textContent = emptyText;
+    } else {
+        element.textContent = result.value;
+    }
+}
+    /* =========================
+   Добавление раздела / объединения
+========================= */
+
+function openAddOrganizationModal() {
+    if (!CAN_EDIT) {
+        return;
+    }
+
+    const modal = document.getElementById("addOrganizationModal");
+
+    if (modal) {
+        modal.style.display = "flex";
+        toggleOrganizationFields();
+
+        const nameInput = document.getElementById("newOrgName");
+
+        if (nameInput) {
+            setTimeout(function () {
+                nameInput.focus();
+            }, 100);
+        }
+    }
+}
+
+function closeAddOrganizationModal() {
+    const modal = document.getElementById("addOrganizationModal");
+
+    if (modal) {
+        modal.style.display = "none";
+    }
+
+    const nameInput = document.getElementById("newOrgName");
+    const parentSelect = document.getElementById("newOrgParentId");
+    const leaderInput = document.getElementById("newOrgLeader");
+    const facultyInput = document.getElementById("newOrgFaculty");
+    const groupInput = document.getElementById("newOrgStudyGroup");
+    const contactInput = document.getElementById("newOrgContactInfo");
+
+    if (nameInput) nameInput.value = "";
+    if (parentSelect) parentSelect.value = "";
+    if (leaderInput) leaderInput.value = "";
+    if (facultyInput) facultyInput.value = "";
+    if (groupInput) groupInput.value = "";
+    if (contactInput) contactInput.value = "";
+
+    const sectionRadio = document.querySelector('input[name="newOrgType"][value="section"]');
+
+    if (sectionRadio) {
+        sectionRadio.checked = true;
+    }
+
+    toggleOrganizationFields();
+}
+
+function toggleOrganizationFields() {
+    const selectedRadio = document.querySelector('input[name="newOrgType"]:checked');
+
+    if (!selectedRadio) {
+        return;
+    }
+
+    const selectedType = selectedRadio.value;
+    const parentBlock = document.getElementById("parentSectionBlock");
+    const parentSelect = document.getElementById("newOrgParentId");
+    const detailsBlock = document.getElementById("newOrgDetailsBlock");
+    const leaderLabel = document.getElementById("newOrgLeaderLabel");
+
+    if (selectedType === "club") {
+        if (parentBlock) parentBlock.style.display = "block";
+        if (detailsBlock) detailsBlock.style.display = "block";
+        if (leaderLabel) leaderLabel.textContent = "Председатель / руководитель";
+    } else {
+        if (parentBlock) parentBlock.style.display = "none";
+        if (detailsBlock) detailsBlock.style.display = "none";
+        if (leaderLabel) leaderLabel.textContent = "Главный председатель направления";
+
+        if (parentSelect) {
+            parentSelect.value = "";
+        }
+    }
+}
+
+async function submitNewOrganization() {
+    const selectedRadio = document.querySelector('input[name="newOrgType"]:checked');
+
+    if (!selectedRadio) {
+        alert("Выберите тип элемента");
+        return;
+    }
+
+    const selectedType = selectedRadio.value;
+
+    const name = document.getElementById("newOrgName").value.trim();
+    const parentId = document.getElementById("newOrgParentId").value;
+    const leaderName = document.getElementById("newOrgLeader").value.trim();
+    const faculty = document.getElementById("newOrgFaculty").value.trim();
+    const studyGroup = document.getElementById("newOrgStudyGroup").value.trim();
+    const contactInfo = document.getElementById("newOrgContactInfo").value.trim();
+
+    if (!name) {
+        alert("Введите название");
+        return;
+    }
+
+    if (selectedType === "club" && !parentId) {
+        alert("Выберите раздел, куда добавить объединение");
+        return;
+    }
+
+    const payload = {
+        item_type: selectedType,
+        name: name,
+        parent_id: selectedType === "club" ? Number(parentId) : null,
+        leader_name: leaderName,
+        faculty: selectedType === "club" ? faculty : "",
+        study_group: selectedType === "club" ? studyGroup : "",
+        contact_info: contactInfo
+    };
+
+    const response = await fetch("/organizations/create", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        alert(result.detail || "Ошибка при добавлении элемента");
+        return;
+    }
+
+    document.getElementById("addOrganizationModal").style.display = "none";
+
+    if (selectedType === "club") {
+        window.location.href = "/organization/" + result.id;
+    } else {
+        window.location.reload();
+    }
+}
+    async function deleteOrganization(event, orgId, orgName, isSection) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+
+    if (!CAN_EDIT) {
+        return;
+    }
+
+    let message = "";
+
+    if (isSection) {
+        message = "Удалить раздел «" + orgName + "»?\n\nЕсли внутри раздела есть объединения, система не позволит удалить его до удаления вложенных объединений.";
+    } else {
+        message = "Удалить объединение «" + orgName + "»?\n\nБудут удалены записи деятельности и связи участников с этим объединением.";
+    }
+
+    if (!confirm(message)) {
+        return;
+    }
+
+    try {
+        const response = await fetch("/organizations/" + orgId, {
+            method: "DELETE"
+        });
+
+        const responseText = await response.text();
+
+        let result = {};
+
+        try {
+            result = responseText ? JSON.parse(responseText) : {};
+        } catch (parseError) {
+            alert("Сервер вернул некорректный ответ. Проверь терминал PyCharm.");
+            console.error(parseError);
+            return;
+        }
+
+        if (!response.ok) {
+            alert(result.detail || "Ошибка при удалении");
+            return;
+        }
+
+        if (Number(orgId) === Number("{{ organization.id }}")) {
+            window.location.href = "/";
+        } else {
+            window.location.reload();
+        }
+
+    } catch (error) {
+        console.error(error);
+        alert("Не удалось удалить элемент. Проверь, запущен ли сервер.");
+    }
+}
+</script>
+    {% if other_members %}
+    <div class="other-members-block">
+        <h2>Поиск участника или группы в других объединениях</h2>
+
+        <p class="other-members-hint">
+            Введите ФИО студента или название группы, чтобы посмотреть совпадения в других объединениях.
+        </p>
+
+        <input
+            type="text"
+            id="otherMembersSearch"
+            class="other-members-search"
+            placeholder="Например: Смирнов или ИБИО-23"
+            oninput="filterOtherMembers()"
+        >
+
+        <table class="other-members-table">
+            <thead>
+                <tr>
+                    <th>Объединение</th>
+                    <th>ФИО</th>
+                    <th>Группа</th>
+                    <th>Роль</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for other_org, student, membership in other_members %}
+                    <tr class="other-member-row"
+                        style="display:none;"
+                        data-search="{{ student.last_name }} {{ student.first_name }} {% if student.middle_name %}{{ student.middle_name }}{% endif %} {{ student.group_name }}">
+                        <td>{{ other_org.name }}</td>
+
+                        <td>
+                            {{ student.last_name }} {{ student.first_name }}{% if student.middle_name %} {{ student.middle_name }}{% endif %}
+                        </td>
+
+                        <td>{{ student.group_name }}</td>
+                        <td>{{ membership.role }}</td>
+                    </tr>
+                {% endfor %}
+
+                <tr id="otherMembersStartRow">
+                    <td colspan="4" style="text-align:center; font-style:italic;">
+                        Введите ФИО или группу для поиска
+                    </td>
+                </tr>
+
+                <tr id="otherMembersEmptyRow" style="display:none;">
+                    <td colspan="4" style="text-align:center; font-style:italic;">
+                        Ничего не найдено
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+{% endif %}
+
+</div>
+
+<div id="addOrganizationModal" class="org-modal-overlay" style="display: none;">
+    <div class="org-modal-window">
+        <div class="org-modal-header">
+            <h3>Добавление элемента меню</h3>
+
+            <button type="button"
+                    class="org-modal-close"
+                    onclick="document.getElementById('addOrganizationModal').style.display='none';">
+                ×
+            </button>
+        </div>
+
+        <div class="org-modal-body">
+            <label class="org-modal-label">Что добавить?</label>
+
+            <div class="org-radio-row">
+                <label>
+                    <input type="radio"
+                           name="newOrgType"
+                           value="section"
+                           checked
+                           onchange="toggleOrganizationFields()">
+                    Новый раздел
+                </label>
+
+                <label>
+                    <input type="radio"
+                           name="newOrgType"
+                           value="club"
+                           onchange="toggleOrganizationFields()">
+                    Новое объединение
+                </label>
+            </div>
+
+            <label class="org-modal-label">Название</label>
+            <input type="text"
+                   id="newOrgName"
+                   class="org-modal-input"
+                   placeholder="Введите название">
+
+            <div id="parentSectionBlock" style="display: none;">
+                <label class="org-modal-label">Раздел</label>
+
+                <select id="newOrgParentId" class="org-modal-input">
+                    <option value="">Выберите раздел</option>
+                    {% for section in sections %}
+                        <option value="{{ section.id }}">{{ section.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <label class="org-modal-label" id="newOrgLeaderLabel">
+                Главный председатель направления
+            </label>
+            <input type="text"
+                   id="newOrgLeader"
+                   class="org-modal-input"
+                   placeholder="ФИО">
+
+            <div id="newOrgDetailsBlock" style="display: none;">
+                <label class="org-modal-label">Факультет</label>
+                <input type="text"
+                       id="newOrgFaculty"
+                       class="org-modal-input"
+                       placeholder="Например: ИБИО">
+
+                <label class="org-modal-label">Группа</label>
+                <input type="text"
+                       id="newOrgStudyGroup"
+                       class="org-modal-input"
+                       placeholder="Например: ИАС-22">
+            </div>
+
+            <label class="org-modal-label">Контактная информация</label>
+            <input type="text"
+                   id="newOrgContactInfo"
+                   class="org-modal-input"
+                   placeholder="Telegram, VK или другая ссылка">
+        </div>
+
+        <div class="org-modal-actions">
+            <button type="button"
+                    class="org-modal-cancel-btn"
+                    onclick="document.getElementById('addOrganizationModal').style.display='none';">
+                Отмена
+            </button>
+
+            <button type="button"
+                    class="org-modal-save-btn"
+                    onclick="submitNewOrganization()">
+                Сохранить
+            </button>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

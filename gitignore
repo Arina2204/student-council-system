@@ -1,0 +1,23 @@
+# Виртуальное окружение
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# IDE
+.idea/
+
+# Переменные окружения и секреты
+.env
+.env.*
+
+# Базы данных
+*.db
+*.sqlite3
+
+# Системные файлы
+.DS_Store
+
